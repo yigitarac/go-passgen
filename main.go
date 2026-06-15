@@ -46,6 +46,7 @@ func main() {
 func sifreOlustur(boyut int, isim string, yol string) {
 	karakterHavuzu := "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuopasdfghjklizxcvbnm123456789!+-?&/"
 	var sifre []byte
+	var slice []sifreler
 	for i := 0; i < boyut; i++ {
 		index := rand.Intn(len(karakterHavuzu))
 		sifre = append(sifre, karakterHavuzu[index])
@@ -55,11 +56,16 @@ func sifreOlustur(boyut int, isim string, yol string) {
 		Isim:    isim,
 		Sifre:   string(sifre),
 	}
-	sifreOzellikleri, err := json.Marshal(yeniSifre)
+	okunanListe, err := os.ReadFile(yol)
 	if err != nil {
-		fmt.Println("Oluşturulan şifre JSON dosyasına kaydedilemedi")
+		fmt.Println("Liste okunamadı.")
 	}
-	os.WriteFile(yol, sifreOzellikleri, 0644)
+	if err == nil {
+		err = json.Unmarshal(okunanListe, &slice)
+	}
+	slice = append(slice, yeniSifre)
+	listelenmisSifreOzellikleri, err := json.Marshal(slice)
+	os.WriteFile(yol, listelenmisSifreOzellikleri, 0644)
 }
 func sifreleriListele(yol string) {
 	var kayitliSifreler sifreler
