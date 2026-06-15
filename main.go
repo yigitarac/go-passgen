@@ -68,10 +68,17 @@ func sifreOlustur(boyut int, isim string, yol string) {
 	os.WriteFile(yol, listelenmisSifreOzellikleri, 0644)
 }
 func sifreleriListele(yol string) {
-	var kayitliSifreler sifreler
-	err := json.Unmarshal([]byte(yol), &kayitliSifreler)
+	var kayitliSifreler []sifreler
+	okunmusListe, err := os.ReadFile(yol)
 	if err != nil {
 		fmt.Println("Şifre dosyası okunamadı")
+	}
+	err = json.Unmarshal(okunmusListe, &kayitliSifreler)
+	if err != nil {
+		fmt.Println("Şifre dosyası çözülemedi")
 		return
+	}
+	for i := range kayitliSifreler {
+		fmt.Printf("İsim: %s, Uzunluk: %d, Şifre: %s\n", kayitliSifreler[i].Isim, kayitliSifreler[i].Uzunluk, kayitliSifreler[i].Sifre)
 	}
 }
