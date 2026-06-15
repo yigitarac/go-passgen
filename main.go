@@ -1,21 +1,71 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
+	"path/filepath"
+	"strconv"
 )
 
 type sifreler struct {
-	Uzunluk int
-	Sifre   string
-	Isim    string
+	Uzunluk int    `json:"uzunluk"`
+	Sifre   string `json:"sifre"`
+	Isim    string `json:"isim"`
 }
 
 func main() {
-	if len(os.Args) < 3 || len(os.Args) > 3 {
-		fmt.Println("passgen <uzunluk> <isim>")
-	} else if len(os.Args) == 3 {
-		boyut := os.Args[1]
-		isim := os.Args[2]
+	homePath, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Home dizini bulunamadı")
+		return
+	}
+	path := filepath.Join(homePath, ".passDB.json")
+	if len(os.Args) < 2 || len(os.Args) > 4 {
+		fmt.Println("passgen new <uzunluk> <isim>")
+		fmt.Println("passgen list")
+	} else if len(os.Args) == 4 {
+		if os.Args[1] == "new" {
+			boyut := os.Args[2]
+			isim := os.Args[3]
+			boyutTamSayi, err := strconv.Atoi(boyut)
+			if err != nil {
+				fmt.Println("Şifre tam sayıya dönüştürülemedi")
+				return
+			}
+			sifreOlustur(boyutTamSayi, isim, path)
+		}
+	} else if len(os.Args) == 2 {
+		if os.Args[1] == "list" {
+			sifreleriListele(path)
+		}
+	}
+}
+
+func sifreOlustur(boyut int, isim string, yol string) {
+	karakterHavuzu := "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuopasdfghjklizxcvbnm123456789!+-?&/"
+	var sifre []byte
+	for i := 0; i < boyut; i++ {
+		index := rand.Intn(len(karakterHavuzu))
+		sifre = append(sifre, karakterHavuzu[index])
+	}
+	yeniSifre := sifreler{
+		Uzunluk: boyut,
+		Isim:    isim,
+		Sifre:   string(sifre),
+	}
+	sifreOzellikleri, err := json.Marshal(yeniSifre)
+	if err != nil {
+		fmt.Println("Oluşturulan şifre JSON dosyasına kaydedilemedi")
+	}
+	os.WriteFile(yol, sifreOzellikleri, 0644)
+}
+func sifreleriListele(yol string) {
+	var kayitliSifreler sifreler
+	err := json.Unmarshal([]byte(yol), &kayitliSifreler)
+	if err != nil {
+		fmt.Println("Şifre dosyası okunamadı")
+		return
 	}
 }
